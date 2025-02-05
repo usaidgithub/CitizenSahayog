@@ -1,0 +1,92 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .admin-login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  .admin-login-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+  }
+  
+  .input-group {
+    margin-bottom: 15px;
+  }
+  
+  .input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+  }
+  
+  .otp-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .otp-button:hover {
+    background-color: #45a049;
+  }
+  
+  @media (max-width: 768px) {
+    .admin-login-card {
+      padding: 20px;
+      width: 90%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .admin-login-card {
+      padding: 15px;
+      width: 100%;
+    }
+  
+    h2 {
+      font-size: 24px;
+    }
+  
+    .input-group input {
+      padding: 8px;
+      font-size: 14px;
+    }
+  
+    .otp-button {
+      padding: 8px;
+      font-size: 14px;
+    }
+  }
+  
