@@ -1,0 +1,85 @@
+/* Report container */
+.report-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Back button */
+.back-button {
+    background: #007bff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background: #0056b3;
+}
+
+/* Headings */
+h2 {
+    margin-bottom: 20px;
+}
+
+/* Form styles */
+.report-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    font-weight: bold;
+    text-align: left;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.disabled-input {
+    background-color: #f8f8f8;
+    cursor: not-allowed;
+    font-weight: bold;
+}
+
+/* Submit button */
+.submit-button {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.submit-button:hover {
+    background: #0056b3;
+}
+
+/* Error message */
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .report-container {
+        max-width: 90%;
+        padding: 15px;
+    }
+}

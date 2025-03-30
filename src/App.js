@@ -1,4 +1,5 @@
 import './App.css';
+import AcknowledgementForm from './components/AcknowledgementForm';
 import AdminLogin from './components/AdminLogin';
 import AdminNavbar from './components/AdminNavbar';
 import AdminPosts from './components/AdminPosts';
@@ -13,11 +14,15 @@ import Navbar from './components/Navbar';
 import Otp from './components/Otp';
 import PostDetails from './components/PostDetails';
 import Register from './components/Register';
+import AcknowledgmentDetails from './components/AcknowledgmentDetails';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
 } from "react-router-dom";
+import SolvedPosts from './components/SolvedPosts';
+import ReportPost from './components/ReportPost';
+
 function App() {
   return (
     <>
@@ -32,9 +37,13 @@ function App() {
           <Route exact path='/createpostform' element={<CreatePostForm/>} />
           <Route exact path='/post/:id' element={<PostDetails/>}/>
           <Route exact path='/home' element={<><Navbar/><AllPosts/></>}/>
+          <Route path="/acknowledgementform/:postId" element={<AcknowledgementForm />} />
           <Route exact path='/adminhome' element={<><AdminNavbar/><AdminPosts/></>}/>
+          <Route exact path='/acknowledged_posts' element={<><AdminNavbar/><SolvedPosts/></>}/>
           <Route exact path='/chatbot' element={<Chatbot/>}/>
           <Route exact path='/analysis' element={<><AdminNavbar/><Analysis/></>}/>
+          <Route path="/acknowledgment-details/:postId" element={<AcknowledgmentDetails />} />
+          <Route path="/user_report/:postId" element={<ReportPost />} />
         </Routes>
       </Router>
     </>

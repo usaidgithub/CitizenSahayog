@@ -26,7 +26,7 @@ export default function AdminNavbar() {
         </div>
         <ul className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
           <li className="nav-item">
-            <Link to="/home" className="nav-links" onClick={toggleMenu}>Home</Link>
+            <Link to="/adminhome" className="nav-links" onClick={toggleMenu}>Home</Link>
           </li>
           <li className="nav-item">
             <Link to="/analysis" className="nav-links" onClick={toggleMenu}>Analysis</Link>
@@ -35,7 +35,7 @@ export default function AdminNavbar() {
             <Link to="/cart" className="nav-links" onClick={toggleMenu}>Reports</Link>
           </li>
           <li className="nav-item">
-            <Link to="/cart" className="nav-links" onClick={toggleMenu}>Solved Posts</Link>
+            <Link to="/acknowledged_posts" className="nav-links" onClick={toggleMenu}>Acknowledged Posts</Link>
           </li>
           <li className="nav-item">
             <span style={{ cursor: 'pointer' }} onClick={handleLogout} className="nav-links">Logout</span>

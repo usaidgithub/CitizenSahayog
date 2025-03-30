@@ -86,7 +86,162 @@ body {
   .delete-button:hover {
     background-color: #e63939;
   }
+  .view-button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    width: 100px;
+    text-align: center;
+    cursor: pointer;
+  }
   
+  .view-button:hover {
+    background-color: #0056b3;
+  }
+  /* Background overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup Container */
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Close button like browser tabs */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  color: #666;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.close-button:hover {
+  color: red;
+}
+
+/* Title Styling */
+/* Background overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Expands from bottom */
+  z-index: 1000;
+}
+
+/* Popup Container */
+.popup-content {
+  background: white;
+  padding: 15px;
+  border-radius: 10px 10px 0 0;
+  width: 90%;
+  max-width: 350px;
+  max-height: 80vh;
+  overflow-y: auto; /* Scroll inside the popup if content overflows */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slide-up 0.3s ease-in-out;
+}
+
+/* Slide-up Animation */
+@keyframes slide-up {
+  from {
+      transform: translateY(100%);
+  }
+  to {
+      transform: translateY(0);
+  }
+}
+
+/* Title Styling */
+.popup-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* User Details Styling */
+.popup-details {
+  width: 100%;
+  font-size: 14px;
+  color: #444;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 55vh; /* Restrict height for scrollability */
+  overflow-y: auto;
+}
+
+.popup-details p {
+  margin: 3px 0;
+  padding: 8px;
+  background: #f7f7f7;
+  border-radius: 5px;
+}
+
+/* Cancel Button */
+.cancel-button {
+  width: 100%;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.cancel-button:hover {
+  background: #b71c1c;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .popup-content {
+      width: 95%;
+      max-width: 320px;
+  }
+}
+
+
   @media (max-width: 768px) {
     .post-options-menu {
       right: 5px;
@@ -119,13 +274,23 @@ body {
     justify-content: space-between;
     width: 100%;
   }
-  
   .post-category,
   .post-date,
   .post-state,
   .post-city {
     font-size: 0.9em;
     color: #555;
+  }
+  .post-status{
+    font-size: 0.9em;
+    color: #555;
+    cursor: pointer;
+  }
+  .post-info{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
   }
   .post-id{
     display: flex;

@@ -1,21 +1,20 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const cors = require('cors');
 const app = express();
-const path=require('path')
+const path = require('path');
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
-const key = crypto.randomBytes(32);
-const iv = crypto.randomBytes(16);
+const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
 // Enable CORS
 app.use(cors({
     origin: 'http://localhost:3000', // Replace with your frontend URL
     credentials: true
 }));
 
-// Parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -26,8 +25,8 @@ app.use(session({
     cookie: { 
         maxAge: 1800000, 
         httpOnly: true,
-        secure: false,      // Set to false because your app uses HTTP
-        sameSite: 'lax'     // Suitable for cross-site requests (like APIs)
+        secure: process.env.NODE_ENV === 'production',  // Secure in production
+        sameSite: 'lax'
     }
 }));
 
@@ -48,6 +47,7 @@ const connection = mysql.createConnection({
     password: '1234',
     database: 'citizenSahayog',
 });
+
 connection.connect((err) => {
     if (err) {
         console.log("Connection with MySQL failed", err);
@@ -55,22 +55,42 @@ connection.connect((err) => {
         console.log("Connection established successfully");
     }
 });
-function encrypt(text) {
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+if (!key || key.length !== 32) {
+    throw new Error("Invalid ENCRYPTION_KEY. It must be 32 bytes (64 hex characters).");
 }
 
-// Decryption function
-function decrypt(text) {
-    let textParts = text.split(':');
-    let iv = Buffer.from(textParts.shift(), 'hex');
-    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+function encrypt(text) {
+    const iv = crypto.randomBytes(16);  // Generate a new IV for every encryption
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return `${iv.toString('hex')}:${encrypted}`;  // Store IV with encrypted text
+}
+
+function decrypt(encryptedText) {
+    try {
+        if (!encryptedText.includes(':')) {
+            throw new Error('Invalid encrypted format - missing IV separator');
+        }
+
+        let [ivHex, dataHex] = encryptedText.split(':');
+
+        if (ivHex.length !== 32) {
+            throw new Error(`Incorrect IV length (${ivHex.length} instead of 32)`);
+        }
+
+        let iv = Buffer.from(ivHex, 'hex');
+        let encryptedBuffer = Buffer.from(dataHex, 'hex');
+
+        const decipher = crypto.createDecipheriv(algorithm, key, iv);
+        let decrypted = decipher.update(encryptedBuffer, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
+        return decrypted;
+    } catch (error) {
+        console.error('❌ Decryption error:', error.message);
+        return null;
+    }
 }
 const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000); // Generates a 6-digit OTP
@@ -410,9 +430,15 @@ app.post('/admin/login', (req, res) => {
     FROM 
         posts
     INNER JOIN
-        citizen_registration -- Join to get the post creator's full name
+        citizen_registration 
     ON 
         posts.citizen_id = citizen_registration.id
+    LEFT JOIN 
+        acknowledgements
+    ON 
+        posts.id = acknowledgements.post_id  -- Match posts with acknowledgment table
+    WHERE 
+        acknowledgements.post_id IS NULL  -- Select only posts that are NOT acknowledged
     ORDER BY 
         posts.post_date DESC;
     `;
@@ -426,9 +452,7 @@ app.post('/admin/login', (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
+
 // New route to fetch problem counts by category
 // Route to fetch problem counts by category with optional filters (state, city)
 app.get('/fetch_problem_counts', (req, res) => {
@@ -471,4 +495,157 @@ app.get('/fetch_states_cities', (req, res) => {
         }
         res.json(results);
     });
+});
+app.get('/fetch_user_details/:postId', async (req, res) => {
+    const postId = req.params.postId;
+
+    // Query to get user details based on post_id
+    const sql = `
+        SELECT c.full_name, c.gender, c.mobile_number, 
+               c.current_address, c.aadhaar_number, c.pan_number, c.voter_id, 
+               c.email
+        FROM citizen_registration c
+        JOIN posts p ON c.id = p.citizen_id
+        WHERE p.id = ?`;
+
+    connection.query(sql, [postId], (err, results) => {
+        if (err) {
+            console.error('Error fetching user details:', err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No user found for this post' });
+        }
+
+        // Decrypt sensitive fields before sending
+        const userDetails = results[0]; 
+        userDetails.aadhaar_number = userDetails.aadhaar_number ? decrypt(userDetails.aadhaar_number) : null;
+        userDetails.pan_number = userDetails.pan_number ? decrypt(userDetails.pan_number) : null;
+        userDetails.voter_id = userDetails.voter_id ? decrypt(userDetails.voter_id) : null;
+
+        res.status(200).json(userDetails);
+    });
+});
+app.post("/acknowledgement", async (req, res) => {
+    try {
+        const {
+            postId,
+            officerName,
+            designation,
+            department,
+            expectedResolution,
+            assignedAuthority,
+            status,
+            ward,
+            remarks,
+            actionPlan,
+            expectedCost
+        } = req.body;
+
+        const query = `
+            INSERT INTO acknowledgements 
+            (post_id, officer_name, designation, department, expected_resolution, assigned_authority, status, ward, remarks, action_plan, expected_cost) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        connection.query(query, [
+            postId,
+            officerName,
+            designation,
+            department,
+            expectedResolution,
+            assignedAuthority,
+            status,
+            ward,
+            remarks,
+            actionPlan,
+            expectedCost
+        ]);
+
+        res.status(201).json({ message: "Acknowledgement stored successfully" });
+
+    } catch (error) {
+        console.error("Error storing acknowledgement:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+app.get('/fetch_acknowledged_posts', (req, res) => {
+    const sql = `
+        SELECT 
+            posts.id, 
+            posts.title, 
+            posts.description, 
+            posts.media_urls, 
+            posts.category, 
+            posts.date_of_occurrence, 
+            posts.state, 
+            posts.city, 
+            posts.place, 
+            posts.post_date,
+            citizen_registration.full_name AS post_creator_full_name,
+             acknowledgements.officer_name,
+            acknowledgements.designation,
+            acknowledgements.department,
+            acknowledgements.expected_resolution,
+            acknowledgements.assigned_authority,
+            acknowledgements.status,
+            acknowledgements.ward,
+            acknowledgements.remarks,
+            acknowledgements.action_plan,
+            acknowledgements.expected_cost,
+            acknowledgements.created_at AS acknowledged_date
+        FROM 
+            posts
+        INNER JOIN 
+            citizen_registration 
+        ON 
+            posts.citizen_id = citizen_registration.id
+        LEFT JOIN 
+            acknowledgements
+        ON 
+            posts.id = acknowledgements.post_id  -- Match posts with acknowledgments
+        WHERE 
+            acknowledgements.status = 'Acknowledged'  -- Select only acknowledged posts
+        ORDER BY 
+            posts.post_date DESC;
+    `;
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.log("Error fetching acknowledged posts", err);
+            return res.status(500).json({ error: "Database error", details: err });
+        }
+        res.status(200).json(results);
+    });
+});
+app.post("/report_post",async (req, res) => {
+    try {
+        const { post_id, post_url, description } = req.body;
+        const reported_by = req.user.id; // Extract user ID from session
+
+        // Check if all required fields are present
+        if (!post_id || !post_url || !description) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // Insert into the database
+        const sql = `INSERT INTO reports (post_id, post_url, reported_by, description) VALUES (?, ?, ?, ?)`;
+        const values = [post_id, post_url, reported_by, description];
+
+        connection.query(sql, values, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ error: "Failed to report post" });
+            }
+            res.status(201).json({ message: "Report submitted successfully" });
+        });
+
+    } catch (error) {
+        console.error("Server error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });

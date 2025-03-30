@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faComment, faShare,faEllipsisV} from '@fortawesome/free-solid-svg-icons';
+import { faHeart, faComment, faShare, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import './MyPosts.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 export default function MyPosts() {
   const [posts, setPosts] = useState([]);
@@ -93,55 +92,55 @@ export default function MyPosts() {
       [index]: !prevState[index],
     }));
   };
-   //Handle delete post functionality
-   const toggleOptionsMenu = (postId) => {
+  //Handle delete post functionality
+  const toggleOptionsMenu = (postId) => {
     setIsOptionsMenuOpen(prev => ({
       ...prev,
       [postId]: !prev[postId] // Toggle the state for the specific post ID
     }));
   };
-  
 
-const handleDelete = async() => {
-  if (postToDelete !== null) {
-    try {
-      const response = await fetch('http://localhost:5000/delete_post', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ postId: postToDelete }),
-      });
-      if (response.ok) {
-        setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
-        setShowDeleteModal(false); // Close the modal
-        setPostToDelete(null); // Reset post to delete
-        toast.success("Post deleted Successfully")
-      } else {
-        console.error('Error deleting the post');
-        toast.error("Failed to delete the post")
+
+  const handleDelete = async () => {
+    if (postToDelete !== null) {
+      try {
+        const response = await fetch('http://localhost:5000/delete_post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ postId: postToDelete }),
+        });
+        if (response.ok) {
+          setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
+          setShowDeleteModal(false); // Close the modal
+          setPostToDelete(null); // Reset post to delete
+          toast.success("Post deleted Successfully")
+        } else {
+          console.error('Error deleting the post');
+          toast.error("Failed to delete the post")
+        }
+      } catch (error) {
+        console.error('Error deleting post:', error);
       }
-    } catch (error) {
-      console.error('Error deleting post:', error);
     }
-  }
-};
-// Toggle delete modal and set post ID
-const confirmDelete = (postId) => {
-  setPostToDelete(postId);
-  setShowDeleteModal(true);
-};
+  };
+  // Toggle delete modal and set post ID
+  const confirmDelete = (postId) => {
+    setPostToDelete(postId);
+    setShowDeleteModal(true);
+  };
 
-// Close the delete modal without deleting
-const cancelDelete = () => {
-  setShowDeleteModal(false);
-  if (postToDelete !== null) {
-    setIsOptionsMenuOpen(prev => ({
-      ...prev,
-      [postToDelete]: false // Close the options menu for the specific post ID
-    }));
-  }
-  setPostToDelete(null);
-};
+  // Close the delete modal without deleting
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    if (postToDelete !== null) {
+      setIsOptionsMenuOpen(prev => ({
+        ...prev,
+        [postToDelete]: false // Close the options menu for the specific post ID
+      }));
+    }
+    setPostToDelete(null);
+  };
   // Handle like/dislike button click
   const handleLike = (postId, index) => {
     // Optimistic UI update
@@ -279,7 +278,7 @@ const cancelDelete = () => {
                       <button className="delete-button" onClick={() => confirmDelete(post.id)}>Delete Post</button>
                     </div>
                   )}
-            
+
                 </div>
               </div>
 
@@ -310,6 +309,14 @@ const cancelDelete = () => {
               <div className="post-id">
                 <span className='post-date'>Posted on: {new Date(post.post_date).toLocaleDateString()}</span>
                 <span className='post-date'>Unique Post Id: {post.id}</span>
+              </div>
+              <div className="post-info">
+                <Link to={`/acknowledgment-details/${post.id}`}>
+                  <span className="post-status">View Status</span>
+                </Link>
+                <Link to={`/user_report/${post.id}`}>
+                  <span className="post-status">Submit Report</span>
+                </Link>
               </div>
 
               <p className="post-description">
@@ -374,7 +381,7 @@ const cancelDelete = () => {
         onConfirm={handleDelete}
         onCancel={cancelDelete}
       />
-       <ToastContainer 
+      <ToastContainer
         position="top-right"
         autoClose={1000}
         hideProgressBar={false}

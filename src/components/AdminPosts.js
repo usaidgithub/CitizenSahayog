@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './MyPosts.css';
-
+import { Link} from 'react-router-dom';
 
 export default function AdminPosts() {
     const [posts, setPosts] = useState([]);
@@ -9,6 +9,8 @@ export default function AdminPosts() {
     const [cities, setCities] = useState([]); // City dropdown options
     const [selectedState, setSelectedState] = useState('All');
     const [selectedCity, setSelectedCity] = useState('All');
+    const [userDetails, setUserDetails] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
     const [searchPostId, setSearchPostId] = useState('');
 
     // Fetch posts on component mount
@@ -61,7 +63,21 @@ export default function AdminPosts() {
             [index]: !prevState[index],
         }));
     };
-
+    const fetchUserDetails = async (postId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/fetch_user_details/${postId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch user details');
+            }
+            const data = await response.json();
+            setUserDetails(data);
+            setShowPopup(true); // Show popup
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+        }
+    };
+    
+    
     const descriptionLimit = 100; // Character limit for truncation
     // Filter posts by selected state and city
     const filteredPosts = posts.filter(post => {
@@ -115,8 +131,8 @@ export default function AdminPosts() {
                             <div className="post-card" key={index}>
                                 <div className="post-header">
                                     <h2 className="post-title">{post.title}</h2>
+                                    <button className="view-button" onClick={() => fetchUserDetails(post.id)}>Credentials</button>
                                 </div>
-
                                 <div className="post-media">
                                     {mediaUrls && mediaUrls.length > 0 && mediaUrls.map((url, i) => (
                                         <div key={i} className="media-item">
@@ -158,12 +174,34 @@ export default function AdminPosts() {
                                         </span>
                                     )}
                                 </p>
-                            <button type='button'>Fill the post acknowledgemwnt form</button>
+                                <Link to={`/acknowledgementform/${post.id}`}><button type='button'>Fill the post acknowledgment form</button></Link>
+
                             </div>
                         );
                     })
                 )}
             </div>
+            {showPopup && userDetails && (
+            <div className="popup-overlay">
+            <div className="popup-content">
+                <h2 className="popup-title">User Credentials</h2>
+                <div className="popup-details">
+                    <p><strong>Full Name:</strong> {userDetails.full_name}</p>
+                    <p><strong>Gender:</strong> {userDetails.gender}</p>
+                    <p><strong>Aadhaar Number:</strong> {userDetails.aadhaar_number}</p>
+                    <p><strong>PAN Number:</strong> {userDetails.pan_number}</p>
+                    <p><strong>Voter ID:</strong> {userDetails.voter_id}</p>
+                    <p><strong>Current Address:</strong> {userDetails.current_address}</p>
+                    <p><strong>Phone Number:</strong> {userDetails.mobile_number}</p>
+                    <p><strong>Email:</strong> {userDetails.email}</p>
+                </div>
+                <button className="cancel-button" onClick={() => setShowPopup(false)}>Cancel</button>
+            </div>
+        </div>
+        
+            
+
+)}
         </>
     );
 }
