@@ -32,7 +32,7 @@ export default function AdminNavbar() {
             <Link to="/analysis" className="nav-links" onClick={toggleMenu}>Analysis</Link>
           </li>
           <li className="nav-item">
-            <Link to="/cart" className="nav-links" onClick={toggleMenu}>Reports</Link>
+            <Link to="/reports" className="nav-links" onClick={toggleMenu}>Reports</Link>
           </li>
           <li className="nav-item">
             <Link to="/acknowledged_posts" className="nav-links" onClick={toggleMenu}>Acknowledged Posts</Link>

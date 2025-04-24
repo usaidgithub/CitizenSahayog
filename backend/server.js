@@ -618,10 +618,30 @@ app.get('/fetch_acknowledged_posts', (req, res) => {
         res.status(200).json(results);
     });
 });
+app.get('/fetch_acknowledgment/:postId', (req, res) => {
+    const { postId } = req.params;
+    const query = `
+        SELECT 
+            officer_name, designation, department, expected_resolution, 
+            assigned_authority, status, ward, remarks, action_plan, expected_cost
+        FROM acknowledgements
+        WHERE post_id = ?`;
+
+    connection.query(query, [postId], (err, results) => {
+        if (err) {
+            console.error('Error fetching acknowledgment details:', err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No acknowledgment found for this post' });
+        }
+        res.json(results[0]);
+    });
+});
 app.post("/report_post",async (req, res) => {
     try {
         const { post_id, post_url, description } = req.body;
-        const reported_by = req.user.id; // Extract user ID from session
+        const reported_by = req.session.userId; // Extract user ID from session
 
         // Check if all required fields are present
         if (!post_id || !post_url || !description) {
@@ -645,7 +665,63 @@ app.post("/report_post",async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
+app.get("/get_reports", async (req, res) => {
+    try {
+        const query = `
+            SELECT r.id, r.post_id, r.post_url, r.reported_by, r.description, r.created_at, 
+                   c.full_name AS reporter_name
+            FROM reports r
+            JOIN citizen_registration c ON r.reported_by = c.id
+            ORDER BY r.created_at DESC;
+        `;
 
+        connection.query(query, (err, results) => {
+            if(err){
+                console.error("Database error:", err);
+                return res.status(500).json({ error: "Failed to fetch reports" });
+            }
+            res.status(200).json(results);
+        })
+    } catch (err) {
+        console.error("Error fetching reports:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+app.get('/profile', (req, res) => {
+    const userId = req.session.userId; // Extract user ID from session
+  
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: User not logged in' });
+    }
+  
+    const sql = `
+      SELECT id, full_name, dob, gender, mobile_number, 
+             permanent_address, current_address, email, username, 
+             aadhaar_number, pan_number, voter_id, registration_date 
+      FROM citizen_registration 
+      WHERE id = ?`;
+  
+    connection.query(sql, [userId], (err, results) => {
+      if (err) {
+        console.error('Error fetching profile details:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      const user = results[0];
+  
+      // Decrypt sensitive fields
+      user.aadhaar_number = user.aadhaar_number ? decrypt(user.aadhaar_number) : null;
+      user.pan_number = user.pan_number ? decrypt(user.pan_number) : null;
+      user.voter_id = user.voter_id ? decrypt(user.voter_id) : null;
+  
+      res.status(200).json(user);
+    });
+  });
+  

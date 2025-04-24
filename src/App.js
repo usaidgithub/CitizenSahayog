@@ -22,6 +22,8 @@ import {
 } from "react-router-dom";
 import SolvedPosts from './components/SolvedPosts';
 import ReportPost from './components/ReportPost';
+import AdminReports from './components/AdminReports';
+import Profile from './components/Profile';
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
           <Route exact path='/analysis' element={<><AdminNavbar/><Analysis/></>}/>
           <Route path="/acknowledgment-details/:postId" element={<AcknowledgmentDetails />} />
           <Route path="/user_report/:postId" element={<ReportPost />} />
+          <Route path="/reports" element={<><AdminNavbar/><AdminReports/></>} />
+          <Route path="/profile" element={<><Navbar/><Profile/></>} />
         </Routes>
       </Router>
     </>

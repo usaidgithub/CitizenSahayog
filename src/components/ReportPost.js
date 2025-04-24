@@ -29,6 +29,7 @@ export default function ReportPost() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ post_id: postId, post_url: postUrl, description }),
+                credentials: 'include'
             });
 
             if (!response.ok) {

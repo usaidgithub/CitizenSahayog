@@ -78,7 +78,8 @@ const CreatePostForm = () => {
                 credentials:'include'
             })
             if(response.ok){
-                navigate('/myposts')
+                navigate('/myposts');
+                toast.success("Post uploaded Successfully");
             }
         }
         

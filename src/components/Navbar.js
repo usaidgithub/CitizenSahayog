@@ -45,10 +45,7 @@ export default function Navbar() {
             <Link to="/myposts" className="nav-links" onClick={toggleMenu}>My Posts</Link>
           </li>
           <li className="nav-item">
-            <Link to="/cart" className="nav-links" onClick={toggleMenu}>Reports</Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/cart" className="nav-links" onClick={toggleMenu}>Profile</Link>
+            <Link to="/profile" className="nav-links" onClick={toggleMenu}>Profile</Link>
           </li>
           <li className="nav-item">
             <span style={{ cursor: 'pointer' }} onClick={handleLogout} className="nav-links">Logout</span>
